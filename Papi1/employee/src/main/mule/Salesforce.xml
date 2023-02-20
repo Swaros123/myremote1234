@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="7d00bcba-2512-4c11-ad64-62e5a37eeb3a" >
+		<salesforce:basic-connection username="mulecaptrain@test.test" password="muletraining2000" securityToken="6BV8ZXMw9errNRQP0gTlibvk" />
+	</salesforce:sfdc-config>
+	<sub-flow name="SFD1" doc:id="48129006-06b3-4a61-bfb7-933ac900b317">
+		<ee:transform doc:name="CSV" doc:id="40edd259-ee38-4575-8d5e-a994ee55030e">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/csv
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+		<set-variable value="C:\Users\swaros\Music\SFTP\Data" doc:name="FilePath" doc:id="50ff4d70-655d-4684-ace2-ce42f2c67aac" variableName="FileName" />
+		<file:write doc:id="d9866298-f22b-4132-a037-6bbfbc89d1c9" config-ref="File_Config" path="C:\Users\swaros\Music\SFTP\InboundSF.csv" doc:name="Inbound File" />
+		<set-variable value="#[vars.FileName ++ '\Inbound\\'  ++ 'SF.csv']" doc:name="copyFileName" doc:id="beb7f961-8a4c-4000-b826-639de801448b" variableName="copy" />
+		<file:copy doc:id="9df77fab-d5b2-4c62-bf55-8b505d037914" config-ref="File_Config" sourcePath="C:\Users\swaros\Music\SFTP\Inoundcpy" targetPath="C:\Users\swaros\Music\SFTP\Archive" createParentDirectories="false" renameTo="#[now() as String {format : 'yyMMddHHmmss'} ++ '_backup_' ++ 'SF.csv']" doc:name="Archive Folder" />
+	</sub-flow>
+	<sub-flow name="SFD2" doc:id="2c6e5760-47d9-480c-9d10-b9d32a17daaf">
+		<ee:transform doc:name="Json" doc:id="a0b5b725-3ea1-4c9c-b34a-8f60c5b2b11d">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	Emp_Id: payload01.Emp_Id__c as String default "",
+	First_Name: payload01.First_Name__c as String default "",
+	Last_Name: payload01.Last_Name__c as String default "",
+	Joining_Date: if(isEmpty(payload01.Joining_Date__c))" " else(payload01.Joining_Date__c) as Date {format : "yyyy-MM-dd"},
+	Address: payload01.Address__c as String default "",
+	DateOfBirth: if(isEmpty(payload01.Date_of_Birth__c))" " else(payload01.Date_of_Birth__c) as Date {format : "yyyy-MM-dd"},
+	Phone_Number: payload01.Phone_Number__c as String default null,
+	Employee_Status: payload01.Employee_Status__c default "",
+	Payment_Status: payload01.Payment_Status__c default "",
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+		<set-variable value="#[payload]" doc:name="sfData" doc:id="3e11d642-cfe6-429e-87f8-7439bf27ec1e" variableName="sfData" />
+		<set-variable value='#["SalesForce"]' doc:name="From" doc:id="8c953c03-faff-4d38-a0ec-789c25894d9a" variableName="From" />
+		<flow-ref doc:name="checkTerminatedRecords" doc:id="204b2e82-c060-4e92-88a6-baa1e1fa1d10" name="empterminated" />
+		<set-payload value="#[vars.sfData]" doc:name="Set Payload" doc:id="3cf538af-7f30-476a-8c65-5cf62f374688" />
+		<flow-ref doc:name="checkForNewemp" doc:id="ebc0f370-8e01-4b38-9e22-daa71882663c" name="Newemp" />
+		<remove-variable doc:name="Remove Variable" doc:id="e01aa5da-52d4-4666-ad8c-a771738ab212" variableName="From" />
+	</sub-flow>
+	<sub-flow name="SFD3" doc:id="8ea3d622-cf0d-4b0b-8a8e-e35586a0ba39" >
+		<ee:transform doc:name="R NonTerminated" doc:id="002ccb9b-5d21-40d5-bc93-3ef51f07dc12">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/csv header = false 
+var from = (now() as Date {format : 'yyyy-MM-dd'} - |P15D|)
+var to = (now() as Date {format : 'yyyy-MM-dd'})
+---
+payload filter ((((upper($.Employee_Status__c) == "EMPLOYEED") or (upper($.Employee_Status__c) == "ACTIVE")))) map ( payload01 , indexOfPayload01 ) -> {
+	Id: payload01.Id,
+	Emp_Id: payload01.Emp_Id__c as String default "",
+	First_Name: payload01.First_Name__c as String default "",
+	Last_Name: payload01.Last_Name__c as String default "",
+	Joining_Date: payload01.Joining_Date__c as String default "",
+	Address: (payload01.Address__c splitBy  ",") joinBy  "" as String default "",
+	DateOfBirth: payload01.Date_of_Birth__c as String default "",
+	Phone_Number: payload01.Phone_Number__c as Number default null,
+	Employee_Status: payload01.Employee_Status__c default "",
+	Payment_Status: payload01.Payment_Status__c default "",
+	}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="2fbf1334-8be7-49e9-aa47-ed2adfd7938d" />
+		<ee:transform doc:name="Rest Records_Date" doc:id="afedb61a-b6ac-4747-889d-44915cd00837">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/csv header = false
+var from = (now() as Date {format : 'yyyy-MM-dd'} - |P15D|) as String
+var to = (now() as Date {format : 'yyyy-MM-dd'}) as String
+---
+payload filter  !((from <= $.column_4 ) and ($.column_4  <= to )) map ((payload01,index) ->{
+	Id: payload01.column_0,
+	Emp_Id: payload01.column_1 as String default "",
+	First_Name: payload01.column_2 as String default "",
+	Last_Name: payload01.column_3 as String default "",
+	Joining_Date: payload01.column_4 as String default "",
+	Address: payload01.column_5 as String default "",
+	DateOfBirth: payload01.column_6 as String default "",
+	Phone_Number: payload01.column_7 as Number default null,
+	Employee_Status: payload01.column_8 default "",
+	Payment_Status: payload01.column_9 default "",
+	Source : "SalesForce",
+})
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="efe6f4fd-af35-44ff-9481-1c056776de27" />
+		<set-variable value="C:\Users\swaros\Music\SFTP\Data" doc:name="FilePath" doc:id="50874b38-0e1c-43d7-b367-ca6f7f131d2e" variableName="FileName" />
+		<file:write doc:id="d4d4da3a-2537-47fb-90ce-1621bb2356a7" config-ref="File_Config" path=" C:\Users\swaros\Music\SFTP\Outbound\payment_Processing3.csv" mode="APPEND" doc:name="Write" />
+	</sub-flow>
+	<sub-flow name="SFData" doc:id="225ae6e3-66b4-4120-930e-12a9ed2e75ad" >
+		<salesforce:query doc:name="Query" doc:id="552474e7-0840-4a72-babf-c3e08f40f843" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query ><![CDATA[select Id, OwnerId, IsDeleted, Name, CreatedDate, CreatedById, LastModifiedDate, LastModifiedById, SystemModstamp, LastViewedDate, LastReferencedDate, Emp_Id__c, First_Name__c, Last_Name__c, Date_of_Birth__c, Joining_Date__c, Termination_Date__c, Employee_Status__c, Payment_Status__c, Phone_Number__c, Address__c, Status__c  from Employee__c]]></salesforce:salesforce-query>
+		</salesforce:query>
+		<ee:transform doc:name="Transform Message" doc:id="c121d990-ff2a-4875-b876-3b7ea85f75ba" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="40211c11-d8ac-4dc7-946d-13a968cdefcd" variableName="SF"/>
+		<set-payload doc:name="Set Payload" doc:id="203b704d-c2e4-4baf-9753-56a926eddca8" value="#[vars.SF]"/>
+		<flow-ref doc:name="SFD1" doc:id="c795b6e8-6724-4ea7-82bf-0e527683f7b6" name="SFD1" />
+		<set-payload value="#[vars.SF]" doc:name="Set Payload" doc:id="86520668-45e2-4c02-a690-f7515b062191" />
+		<flow-ref doc:name="SFD2" doc:id="6556aea1-1eb9-4ab5-94d7-a67a2d4fbe9e" name="SFD2" />
+		<set-payload value="#[vars.SF]" doc:name="Set Payload1" doc:id="8729caeb-c90c-467e-a76f-6931aaa3121f" />
+		<flow-ref doc:name="SFD3" doc:id="96e7ed70-8226-4d72-8d49-a4653e7b1e3e" name="SFD3" />
+		<logger level="INFO" doc:name="Logger" doc:id="c16f4053-ed92-46ec-8826-311e162fd3a5" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"CorelationId": vars.CorelationId,&#10;	"Payload" : payload&#10;}]' />
+	</sub-flow>
+</mule>

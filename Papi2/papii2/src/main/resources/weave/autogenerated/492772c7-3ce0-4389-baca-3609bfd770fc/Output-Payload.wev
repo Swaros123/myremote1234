@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_492772c7_3ce0_4389_baca_3609bfd770fc_Output_Payload = Array<{|  Id: String | Null,   success: Boolean {"typeId": "boolean"} | Null|}> | Array<{|  Id: String | Null,   success: Boolean {"typeId": "boolean"} | Null,   "error Message": String,   "error StatusCode": String|}>
+

@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:sockets="http://www.mulesoft.org/schema/mule/sockets"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/sockets http://www.mulesoft.org/schema/mule/sockets/current/mule-sockets.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+	<file:config name="File_Config" doc:name="File Config" doc:id="9c02e7c0-f3c6-442f-8256-1ceae198093f" />
+	<file:config name="File_Config1" doc:name="File Config" doc:id="4c3b6e5c-c583-4d8f-b229-db9779f56cd6" />
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="bace8848-4723-4f87-a08a-005d7ab2c37a" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="Swaroop@123" database="employeeee"/>
+	</db:config>
+	<email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="9c1b740b-3ca4-4324-b662-6154cfc7c0ad" >
+		<email:smtp-connection host="smtp.gmail.com" port="587" user="swarooplucky3333@gmail.com" password="dehrfscraogujbnp" >
+			<email:properties >
+				<email:property key="mail.smtp.starttls.enable" value="True" />
+			</email:properties>
+		</email:smtp-connection>
+	</email:smtp-config>
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="8f582e37-9691-46ad-b629-8be0a8f2b933" >
+		<salesforce:basic-connection username="mulecaptrain@test.test" password=" muletraining2000" securityToken="6BV8ZXMw9errNRQP0gTlibvk" />
+	</salesforce:sfdc-config>
+	<sub-flow name="SFTP" doc:id="e1f867ee-a033-4059-b90d-42ca8a275c4e" >
+		<ee:transform doc:name="Transform Message" doc:id="a18ca6e0-736e-4fc8-99f6-050f3376125a">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/csv
+---
+payload filter($.Source == "SFTP") map ((item, index) -> {
+        "Emp_Id": item.Emp_Id as String default "",
+        "First_Name": item.First_Name as String default "",
+        "Last_Name": item.Last_Name as String default "",
+        "Joining_Date": item.Joining_Date as String default "" ,
+        "Address": item.Address as String default "",
+        "DateOfBirth": item.DateOfBirth as String default "",
+        "Phone_Number": item.Phone_Number as String default "",
+        "Employee_Status": item.Employee_Status as String default "",
+        "Payment_Status": (now() as DateTime 
+		{format : "yy-MM-dd_HH:mm:dd"}) ++ "_Payment Processed" as String default "",
+        "Termination_Date": item.Termination_Date as String default "",
+        "Status": item.Status as String default ""
+}) ]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<file:write doc:name="Write" doc:id="ff0d0f59-2a2b-4cdd-84d2-b3f59eccac1d" config-ref="File_Config1" path="C:\Users\swaros\Music\SFTP\DB Inbound\eng.csv" />
+		<ee:transform doc:name="Transform Message1" doc:id="b012b0d6-42ea-46fc-9aea-e5c1dd9d4f23">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Payload" : payload
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<email:send doc:name="Send" doc:id="f4d213a5-4b30-4319-9da7-62920131b58b" config-ref="Email_SMTP" fromAddress="swarooplucky3333@gmail.com" subject='" SFTPData"'>
+			<email:to-addresses >
+				<email:to-address value="swarooplucky3333@gmail.com" />
+			</email:to-addresses>
+			<email:body >
+				<email:content ><![CDATA[please find attachment]]></email:content>
+			</email:body>
+			<email:attachments ><![CDATA[#[{
+	"Payload": payload
+}]]]></email:attachments>
+		</email:send>
+		<logger level="INFO" doc:name="Logger" doc:id="d80314be-bda6-4700-a28f-649d89251a3e" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"CorelationId": vars.CorelationId,&#10;	"Payload" : payload&#10;}]' />
+	</sub-flow>
+	<flow name="papii2Flow" doc:id="04b50dbf-14b3-4285-92d0-4b97ce9e96e7" >
+		<scheduler doc:name="Scheduler" doc:id="d3933d0d-e7c0-4d6d-a724-21d6e680f5ba" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="1" timeUnit="MINUTES"/>
+			</scheduling-strategy>
+		</scheduler>
+		<file:read doc:name="Read" doc:id="31f2e063-11c0-4c23-b826-05a846abb865" config-ref="File_Config" path="C:\Users\swaros\Music\SFTP\Outbound\payment_Processing3.csv" />
+		<flow-ref doc:name="Flow Reference" doc:id="5ae23b0c-252d-4456-a2cc-6c7c83ac934a" name="DB" />
+		<file:read doc:name="Read" doc:id="1f3ea1dc-6dc0-43c8-9c15-7487a089674d" config-ref="File_Config" path="C:\Users\swaros\Music\SFTP\Outbound\payment_Processing3.csv"/>
+		<flow-ref doc:name="Flow Reference" doc:id="60dc217e-894e-40b1-9601-e4e3f059a61a" name="Salesforce" />
+		<file:read doc:name="Read1" doc:id="03f601e7-6c9c-460c-aa27-f74d835749bc" config-ref="File_Config" path="C:\Users\swaros\Music\SFTP\Outbound\payment_Processing3.csv" />
+		<flow-ref doc:name="Flow Reference" doc:id="7ca7dc08-0076-4ae6-8ca3-cf83efce4166" name="SFTP" />
+		<error-handler ref="globalErrorHandlerError_Handler" />
+	</flow>
+	<sub-flow name="Salesforce" doc:id="492772c7-3ce0-4389-baca-3609bfd770fc" >
+		<ee:transform doc:name="Transform Message" doc:id="b18ce6c9-5cec-426a-bacc-c339c31cc5e0" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload filter($.Source== "SalesForce") map ((item, index) -> {
+	Id:item.Id,  
+	Emp_Id__c:item.Emp_Id as String default "",
+	First_Name__c: item.First_Name as String default "",
+	Address__c:item.Address as String default "",
+	Employee_Status__c : item.Employee_Status as String default "",
+	Payment_Status__c:"Payment Processed " as String default "",
+	Phone_Number__c: item.Phone_Number as String default "",
+	Status__c:item.Status as String default ""
+})]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:update doc:name="Update" doc:id="76b77ed3-e51a-4bfb-8655-ba960f1d76bf" config-ref="Salesforce_Config" type="Employee__c"/>
+		<salesforce:query doc:name="Query" doc:id="2e76abf1-1158-41b8-a374-4868334fbbd5" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query ><![CDATA[select Id, OwnerId, IsDeleted, Name, CreatedDate, CreatedById, LastModifiedDate, LastModifiedById, SystemModstamp, LastViewedDate, LastReferencedDate, Emp_Id__c, First_Name__c, Last_Name__c, Date_of_Birth__c, Joining_Date__c, Termination_Date__c, Employee_Status__c, Payment_Status__c, Phone_Number__c, Address__c, Status__c  from Employee__c]]></salesforce:salesforce-query>
+		</salesforce:query>
+		<ee:transform doc:name="Transform Message" doc:id="1971de09-5bff-4c8c-a57f-e11fbe50c3f5">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+		<email:send doc:name="Send" doc:id="430e7557-73c4-4230-b1eb-3dc1887d77c0" config-ref="Email_SMTP" fromAddress="swarooplucky3333@gmail.com" subject='"SFData"'>
+			<email:to-addresses>
+				<email:to-address value="swarooplucky3333@gmail.com" />
+			</email:to-addresses>
+			<email:body>
+				<email:content><![CDATA[please find attachment]]></email:content>
+			</email:body>
+			<email:attachments><![CDATA[#[{
+	"Payload": payload
+}]]]></email:attachments>
+		</email:send>
+		<logger level="INFO" doc:name="Logger" doc:id="5ffc7998-e80a-4a2a-81d7-b982fe247668" />
+	</sub-flow>
+	<sub-flow name="DB" doc:id="be67a692-9f18-4a15-9ad2-b75ba9d28bcf" >
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="8a206798-38ca-49c7-9794-5660715a9357" />
+		<ee:transform doc:name="Transform Message" doc:id="3d481b88-eacc-4ff4-9a10-80f3a72d5069" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload filter($.Source== "DB") map ((item, index) -> {
+        "Emp_Id": item.Emp_Id as String default "",
+        "First_Name": item.First_Name as String default "",
+        "Last_Name": item.Last_Name as String default "",
+        "Joining_Date": item.Joining_Date as String default "" ,
+        "Address": item.Address as String default "",
+        "DateOfBirth": item.DateOfBirth as String default "",
+        "Phone_Number": item.Phone_Number as String default "",
+        "Employee_Status": item.Employee_Status as String default "",
+        "Payment_Status": (now() as DateTime 
+		{format : "yy-MM-dd_HH:mm:dd"}) ++ "_Payment Processed" as String default "",
+        "Termination_Date": item.Termination_Date as String default "",
+        "Status": item.Status as String default ""
+})]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="9d31018f-1932-4562-b474-2dfd1dfce5fa" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<foreach doc:name="For Each" doc:id="73107976-46f5-4554-b191-ea33584224c9" >
+			<db:update doc:name="Update" doc:id="d13094b3-581c-4a3a-94bf-2f19ccd6f0fb" config-ref="Database_Config">
+				<db:sql ><![CDATA[UPDATE emp SET PaymentStatus =:PaymentStatus 
+WHERE Emp_Id = :Emp_Id]]></db:sql>
+				<db:input-parameters ><![CDATA[#[{
+	PaymentStatus : payload.Payment_Status ,
+	Emp_Id : payload.Emp_Id
+}]]]></db:input-parameters>
+			</db:update>
+		</foreach>
+		<ee:transform doc:name="Transform Message" doc:id="2f713c63-d57b-4403-ac9a-277a1e1b674b">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Payload" : payload
+	
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		<email:send doc:name="Send" doc:id="aaa29acf-478f-47a5-8ba0-b5f3a27210cf" config-ref="Email_SMTP" fromAddress="swarooplucky3333@gmail.com" subject='" DBData"' >
+			<email:to-addresses >
+				<email:to-address value="swarooplucky3333@gmail.com" />
+			</email:to-addresses>
+			<email:body >
+				<email:content ><![CDATA[please find attachment]]></email:content>
+			</email:body>
+			<email:attachments ><![CDATA[#[{
+	"Payload": payload
+}]]]></email:attachments>
+		</email:send>
+		<logger level="INFO" doc:name="Logger" doc:id="708f60e3-f63f-4622-96e1-041018f814c7" />
+	</sub-flow>
+</mule>

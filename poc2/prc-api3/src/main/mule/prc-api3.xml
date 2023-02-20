@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<file:config name="File_Config" doc:name="File Config" doc:id="56ac4812-e4ba-422d-b03d-d6046f05fd65" />
+	<os:object-store name="Object_store" doc:name="Object store" doc:id="747a51a0-9d9f-4886-a080-9aa6f1d30ef8" entryTtl="60" expirationInterval="30"/>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="d6fd9fb9-3a72-44e3-8336-b4a87987cadc" basePath="/api/whInfo">
+		<http:request-connection host="localhost" port="8081" />
+	</http:request-config>
+	<file:config name="File_Config1" doc:name="File Config" doc:id="f881cf29-e840-4d13-8be6-1febc7253afa" />
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="83baaee2-03a6-486c-b862-6dbcbb9d9a8c" >
+		<http:listener-connection host="0.0.0.0" port="8082" />
+	</http:listener-config>
+	<http:listener-config name="HTTP_Listener_config1" doc:name="HTTP Listener config" doc:id="4ff7354c-abf5-40c5-9757-8bd230532e95" >
+		<http:listener-connection host="0.0.0.0" port="8083" />
+	</http:listener-config>
+	<http:listener-config name="HTTP_Listener_config2" doc:name="HTTP Listener config" doc:id="be420991-ae81-4834-b6cc-ddba263fbc01" >
+		<http:listener-connection host="0.0.0.0" port="8084" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="a77952f9-91d9-40a6-974e-911403e29723" >
+		<http:request-connection host="localhost" port="8089" />
+	</http:request-config>
+	<flow name="prc-api3Flow" doc:id="b958be95-0d52-42fb-b557-d7ff0fb8dbea" >
+		<file:listener doc:name="On New or Updated File" doc:id="79762fd1-046c-44fb-998b-3f769dd4f06d" config-ref="File_Config" directory="C:\POC2\File\input\Data" watermarkMode="MODIFIED_TIMESTAMP" timeBetweenSizeCheck="30" timeBetweenSizeCheckUnit="SECONDS">
+			<scheduling-strategy >
+				<cron expression="0 0/5 * ? * * *"/>
+			</scheduling-strategy>
+			<file:matcher filenamePattern="WH_*.dat "/>
+		</file:listener>
+		<logger level="INFO" doc:name="Logger" doc:id="e6beefe1-a1e9-48e7-92b2-729b30e20a74" message="#[payload]"/>
+	</flow>
+	<flow name="prc-api3Flow1" doc:id="5937d0d9-8b36-41fd-a069-bb32581e9fb8" >
+		<scheduler doc:name="Scheduler" doc:id="514d8ecf-aeb3-4545-aaec-b972eb14d1d9" >
+			<scheduling-strategy >
+				<fixed-frequency timeUnit="MINUTES" frequency="5"/>
+			</scheduling-strategy>
+		</scheduler>
+		<file:read doc:name="Read" doc:id="499c060e-987f-4ed0-892b-f6ceccc48b49" config-ref="File_Config" path="C:\POC2\File\input\Data\WH_221223123047.dat"/>
+		<set-variable doc:name="Set Variable" doc:id="15864850-6e49-49b7-b76d-340b3134e6df" variableName="File" value="#[payload]"/>
+		<set-payload value='#[payload]' doc:name="Set Payload" doc:id="664afa55-cc9d-4b23-ae98-481f4b1234a5" mimeType='application/flatfile; recordterminator=none; schemapath="/schemas/whdetails.ffd"'/>
+		<ee:transform doc:name="Transform Message" doc:id="e85dd8e2-1ad1-47c9-a958-3049f0826e57" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map
+{
+    facility: $.facility,
+    whCode: $.whCode ,
+    whName: $.whName ,
+    orderNo: $.orderNo ,
+    itemNo: $.itemNo ,
+    quantity: $.quantity,
+    weight: $.weight ,
+    filler: $.filler
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="34aeb7f5-4817-4689-91d6-f673f2b1939b" message="#[payload]"/>
+		<flow-ref doc:name="Flow Reference" doc:id="3dca6740-fd40-44e0-bc4c-6325d7b66de0" name="prcapi3Flow2"/>
+		<logger level="INFO" doc:name="Logger" doc:id="06b93c04-a02a-43d2-9bc9-afcee3b97b24" />
+	</flow>
+	<flow name="prcapi3Flow2" doc:id="a6a0b932-1731-4572-901f-36c92d21f7ab" initialState="started">
+		<logger level="INFO" doc:name="Logger" doc:id="45e8a21b-3bfe-444a-9506-63d37fb7d15a" />
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="53ced8ac-4da8-41fa-90a1-984e3c773f54" variableName="data" />
+		<os:retrieve doc:name="Retrieve" doc:id="367361e4-329b-420a-80b8-eeae7e553536" key="retdata" objectStore="Object_store">
+			<os:default-value><![CDATA[#["NoValue"]]]></os:default-value>
+		</os:retrieve>
+		<choice doc:name="Choice" doc:id="2bffd516-b3e3-43c9-9b2c-40a77c1c9228">
+			<when expression='#[payload=="NoValue"]'>
+				<http:request method="GET" doc:name="Request" doc:id="63bcd203-37db-4140-81ef-2420335552e7" config-ref="HTTP_Request_configuration1" path="/api/whInfo"/>
+				<logger level="INFO" doc:name="Logger" doc:id="6befa53c-5eb8-4422-8d84-f65daf85fd8f" />
+				<set-variable value="#[payload]" doc:name="Set Variable" doc:id="22563b9f-2007-4c65-94d8-f3da33217bda" variableName="sapi"/>
+				<logger level="INFO" doc:name="Logger" doc:id="3df21ee4-ea40-4c9a-98d8-b82973087da1" />
+				<set-payload value="#[payload]" doc:name="Set Payload" doc:id="fff0fafc-bb2b-4cab-b307-9103a33ed439" />
+				<os:store doc:name="Store" doc:id="536ac0d5-90ed-479c-8bfe-66df9a41ea25" key="retdata" objectStore="Object_store" />
+				<flow-ref doc:name="Flow Reference" doc:id="c8342432-6244-43c7-81fe-5d33a9ac46e8" name="implementationYSub_Flow" />
+				<flow-ref doc:name="Flow Reference" doc:id="3f88c452-8a9a-4e2d-9e02-0b75a957d83c" name="implementationNSub_Flow"/>
+			</when>
+			<otherwise >
+				<set-variable value="#[payload]" doc:name="Set Variable" doc:id="6b480607-a3b1-4393-b044-b5c6009d1379" variableName="sapi" />
+				<logger level="INFO" doc:name="Logger" doc:id="a626fad1-6c13-4249-ac80-8fe19c168071" />
+				<flow-ref doc:name="Flow Reference" doc:id="64a54f85-2ff8-4d58-b6ab-9ffd4ed9953f" name="implementationYSub_Flow" />
+				<flow-ref doc:name="Flow Reference" doc:id="9d1496ff-1dec-4299-a54b-e682dcb4d2bc" name="implementationNSub_Flow"/>
+			</otherwise>
+		</choice>
+	</flow>
+<sub-flow name="SetPayload" doc:id="09f54928-be4a-48ed-b777-3ee5436d04a0" >
+<set-variable value="#[payload.warehouse_code]" doc:name="Set Variable" doc:id="cb15c0ea-7fb1-4292-a12f-d135b0d7f922" variableName="warehouse_code" />
+<set-payload value="#[vars.data]" doc:name="Set Payload" doc:id="8a5a8aae-b3c0-41a3-9aba-48c088070ac7" />
+</sub-flow>
+	<sub-flow name="implementationYSub_Flow" doc:id="d770a0e0-8887-413c-9fce-81e86bc21d88" >
+		<set-payload value="#[payload]" doc:name="Set Payload SAPI Data" doc:id="9b36ef17-76e1-4577-a29d-4d2f5187b9da" />
+		<logger level="INFO" doc:name="Logger" doc:id="6e4e834c-214b-4679-9ceb-b29bb3307bf5" />
+		<ee:transform doc:name="wh_live = Y" doc:id="f531c467-0055-4d30-9fa6-50b1713af08f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var comppayload = {"payload1" : vars.data , "payload2" : vars.sapi } 
+
+var data = comppayload.payload2 filter ($.wh_live_ind == "Y") map ((element) ->{
+    (comppayload.payload1 filter $.whCode ~= element.warehouse_code)
+})
+var Ydata = data filter ($.facility != null)
+---
+Ydata]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="6e25edea-876e-4f95-bf6f-5ab0d785feb7" />
+		<ee:transform doc:name="Add quality and weight" doc:id="4df8b242-c087-4654-aa59-503d5863c2e0" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map ((item, index) -> {
+    "facility": item.facility,
+    "whCode": item.whCode,
+    "whName": item.whName,
+    "orderNo": item.orderNo,
+    "itemNo": item.itemNo,
+    "quantity": sum(item.*quantity),
+    "weight": sum(item.*weight),
+    "filler": item.filler
+})]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="65ba8df4-6cd9-44f1-879b-859d5550b046" />
+		<ee:transform doc:name="JSON to XML" doc:id="6e53d2c1-edef-463a-a936-4cb9610a0ac4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+{
+	whDetails: {
+		(payload map ( payload01 , indexOfPayload01 ) -> {
+			whDetail: {
+				facility: payload01.facility as Number default null,
+				whCode: payload01.whCode as Number default null,
+				whName: payload01.whName as String default null,
+				orderNo: payload01.orderNo as Number default null,
+				itemNo: payload01.itemNo as Number default null,
+				quantity: payload01.quantity as Number default null,
+				weight: payload01.weight as Number default null,
+				filler: payload01.filler default ""
+			}
+		})
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<file:write doc:name="Write XML" doc:id="ffba0fda-7213-4666-8dc7-b73bd3678ec9" config-ref="File_Config" path='C:\Users\swaros\Videos\my_remote\Task\poc\prc-api3\file.xml' />
+		<logger level="INFO" doc:name="Logger" doc:id="eb51b971-f423-4755-9e41-392107c2afe9" message="#[payload]" />
+	</sub-flow>
+	<sub-flow name="implementationNSub_Flow" doc:id="57268354-0ca0-4678-b85c-661405e0c5fb" >
+		<set-payload value="#[payload]" doc:name="Set Payload SAPI Data" doc:id="6ed02059-5bdf-4f37-ba70-1137dfbb7a8e" />
+		<logger level="INFO" doc:name="Logger" doc:id="af5512d4-ab68-4c9e-8300-bf51a0e94098" />
+		<ee:transform doc:name="wh_live = N" doc:id="a8315cad-a0ab-47fc-a17c-c305756d9bb5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var comppayload = {"payload1" : vars.data , "payload2" : vars.sapi } 
+
+
+var data1 = comppayload.payload2 filter ($.wh_live_ind == "N") map ((element) ->{
+    (comppayload.payload1 filter $.whCode ~= element.warehouse_code)
+})
+
+var Ndata = data1 filter ($.facility != null)
+---
+Ndata]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="72fbd7e0-aed8-4f47-8f5c-380a099b6af9" />
+		<ee:transform doc:name="JSON to FFD" doc:id="c1991dbb-9d3e-4012-88b3-4c1b77c56e60" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/flatfile schemaPath = "schemas/CB.ffd"
+---
+payload map
+{
+	facility: $.facility,
+	whCode: $.whCode ,
+	whName: $.whName ,
+	orderNo: $.orderNo ,
+	itemNo: $.itemNo ,
+	quantity: $.quantity,
+	weight: $.weight ,
+	filler: $.filler
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="75f235ab-038d-4d0f-9305-da7e50f902e9" />
+		<file:write doc:name="Write Error FFD" doc:id="48dfecf0-d8c2-4de9-a31f-afe91d92913d" config-ref="File_Config" path='C:\Users\swaros\Videos\my_remote\Task\poc\prc-api3\error..dat' />
+		<logger level="INFO" doc:name="Logger" doc:id="c0bdc6fb-820e-46b4-b5f1-55a26b5a2cfe" message="#[payload]" />
+	</sub-flow>
+</mule>

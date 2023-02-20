@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<file:config name="File_Config" doc:name="File Config" doc:id="9737272e-2b57-4fa1-92b3-6543d87e455f" />
+	<flow name="mainFlow" doc:id="0ee04ad5-913b-416a-be80-a989772dd3f9">
+		<scheduler doc:name="Scheduler" doc:id="5e6a71a5-b68f-4ba1-b481-9f6e16cc0336">
+			<scheduling-strategy>
+				<fixed-frequency frequency="5" timeUnit="MINUTES"/>
+			</scheduling-strategy>
+		</scheduler>
+		<flow-ref doc:name="SFTP" doc:id="71c52cba-b4ee-4c59-9265-dfa314c99aa3" name="SFTPData" />
+		<flow-ref doc:name="SF" doc:id="2cd7d36a-9215-4b45-84d6-e4093e0f4bd1" name="SFData" />
+		<flow-ref doc:name="DB Data" doc:id="fcc47a92-5b0f-455c-81f1-e200d73b082d" name="DBData" />
+	</flow>
+	<sub-flow name="SFTPData" doc:id="2ae88ca2-8f3a-4bb9-bdbb-5e1d7f042811" >
+		<file:read doc:name="Read" doc:id="322f0444-e823-42fe-8d0f-f64a0bd1dc57" config-ref="File_Config" path="C:\Users\swaros\Music\SFTP\Data\Doc1.csv"/>
+		<ee:transform doc:name="Transform Message" doc:id="4f273ebb-e647-4077-a3dd-c3e46bf3bc47" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="6970c9fe-b371-4f83-a9f9-e2e6614d6c18" variableName="data" />
+		<ee:transform doc:name="Transform Message" doc:id="189dff0e-b9c6-405d-977b-1fbb98d55e30" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map(payload01, indexOfPayload01) ->
+{
+	Emp_Id: payload01.Emp_Id as String default "",
+	First_Name: payload01.First_Name as String default "",
+	Last_Name: payload01.Last_Name as String default "",
+	Joining_Date: payload01.Joining_Date as Date {format : "yyyy-MM-dd"} default "",
+	Address: (payload01.Address splitBy  ",") joinBy  "" as String default "",
+	DateOfBirth: payload01.DateOfBirth as Date {format : "yyyy-MM-dd"} default "",
+	Phone_Number: payload01.Phone_Number as Number default null,
+	Employee_Status: payload01.Employee_Status default "",
+	Payment_Status: payload01.Payment_Status default "",
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-payload value="#[vars.data]" doc:name="Set Payload" doc:id="ed1b3978-fb6d-4813-a748-21243cd75368" />
+		<flow-ref doc:name="1st" doc:id="67474dc8-9a49-495d-885e-83ec1119cf98" name="sftp11" />
+		<set-payload value="#[vars.data]" doc:name="Set Payload" doc:id="0842dc08-68fa-4c6b-a8c1-e685415b1f38" />
+		<flow-ref doc:name="2nd" doc:id="a54337e7-1d22-44ec-9ca0-7e737ac58b3f" name="sftp2" />
+		<set-payload value="#[vars.Data]" doc:name="Set Payload1" doc:id="fde2e53e-a151-48c2-8f97-0deba499f259" />
+		<flow-ref doc:name="3rd" doc:id="30e18394-b599-42ee-890a-e4f6d6b5227f" name="sftp3" />
+		<logger level="INFO" doc:name="Logger" doc:id="e4427716-ffc0-49ae-a517-ad0b5ed0a63c" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"CorelationId": vars.CorelationId,&#10;	"Payload" : payload&#10;}]' />
+	</sub-flow>
+	<sub-flow name="sftp11" doc:id="4b6c02a1-b354-461d-b0a9-c626cd6cf5a4">
+		<ee:transform doc:name="CSV" doc:id="1eb74d60-8d95-48f1-9773-b07ad41f7d99">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/csv
+---
+payload ]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="C:\Users\swaros\Music\SFTP\Inbound " doc:name="Path" doc:id="dba178b8-027f-4613-9f9a-86e3f69bf20f" variableName="FileName" />
+		<file:write doc:id="2bbf466e-f36c-4042-8698-3d88e883d701" config-ref="File_Config" path="C:\Users\swaros\Music\SFTP\Inbound\sftp.csv" doc:name=" Inbound File" />
+		<set-variable value="C:\Users\swaros\Music\SFTP\Inoundcpy\sftpData.csv" doc:name="copyFileName" doc:id="cb2a1443-7db9-4370-8c6c-e0e56526cca6" variableName="copy" />
+		<file:copy doc:id="9f2e14b9-0553-4747-a615-becee0778265" config-ref="File_Config" sourcePath="C:\Users\swaros\Music\SFTP\Inbound " targetPath="C:\Users\swaros\Music\SFTP\Inoundcpy" createParentDirectories="false" renameTo="#[now() as String {format : 'yyMMddHHmmss'} ++ '_backup_' ++ 'sftpData.csv']" doc:name=" Archive Folder" />
+	</sub-flow>
+	<sub-flow name="sftp2" doc:id="33739a2a-e284-40e0-a20c-d4bd0e8a52fe">
+		<ee:transform doc:name="JSON" doc:id="d7cf11d5-d50d-4e28-833c-ca3ffdaba689">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	Emp_Id: payload01.Emp_Id as String default "",
+	First_Name: payload01.First_Name as String default "",
+	Last_Name: payload01.Last_Name as String default "",
+	Joining_Date: payload01.Joining_Date as Date {format : "yyyy-MM-dd"} default "",
+	Address: payload01.Address as String default "",
+	DateOfBirth: payload01.DateofBirth as Date {format : "yyyy-MM-dd"} default "",
+	Phone_Number: payload01.Phone_Number as Number default null,
+	Employee_Status: payload01.Employee_Status default "",
+	Payment_Status: payload01.Payment_Status default "",
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[payload]" doc:name="sftp" doc:id="b47b246d-551e-475e-8f6c-711ca5f915a5" variableName="sftpData" />
+		<set-variable value='#["SFTP"]' doc:name="From" doc:id="0912b317-16b0-4a8e-acb1-196169585aee" variableName="From" />
+		<flow-ref doc:name="TerminatedRecords" doc:id="ad40521a-32d5-4070-9476-65ef73618a68" name="empterminated" />
+		<set-payload value="#[vars.sftpData]" doc:name="Set Payload" doc:id="c003fdca-ef03-4f8b-b162-0344b77b6eb1" />
+		<flow-ref doc:name="ForNewEmp" doc:id="df570a32-74bb-4c2c-9ed6-3b71cfd67829" name="Newemp" />
+		<remove-variable doc:name="Remove Variable" doc:id="a7fee394-8ae5-47f8-90a1-b34a501a473a" variableName="From" />
+	</sub-flow>
+	<sub-flow name="sftp3" doc:id="8be90e17-a9e6-4d8e-b154-f1cc05812c31" >
+		<ee:transform doc:name="Transform Message" doc:id="e8792237-5cdb-4cdd-98c6-7443866d4493" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+%dw 2.0
+output application/json
+---
+payload map(payload01, indexOfPayload01) ->{
+Id: "",
+	Emp_Id: payload01.Emp_Id as String default "",
+	First_Name: payload01.First_Name as String default "",
+	Last_Name: payload01.Last_Name as String default "",
+	Joining_Date: payload01.Joining_Date as String default "",
+	Address: (payload01.Address splitBy  ",") joinBy  "" as String default "",
+	DateOfBirth: payload01.Date_of_Birth as String default "",
+	Phone_Number: payload01.Phone_Number as Number default null,
+	Employee_Status: payload01.Employee_Status default "",
+	Payment_Status: payload01.Payment_Status default "",
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Rest Records" doc:id="66e6af95-1c32-4e3e-a7ff-b3d8c8ebcff2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv 
+var from = (now() as Date {format : 'yyyy-MM-dd'} - |P15D|)
+var to = (now() as Date {format : 'yyyy-MM-dd'})
+---
+payload filter !((upper($.Employee_Status) == "TERMINATED") or (upper($.Employee_Status) == "INACTIVE")) map ( payload01 , indexOfPayload01 ) -> {
+	Id: "",
+	Emp_Id: payload01.Emp_Id as String default "",
+	First_Name: payload01.First_Name as String default "",
+	Last_Name: payload01.Last_Name as String default "",
+	Joining_Date: payload01.Joining_Date as String default "",
+	Address: payload01.Address as String default "",
+	DateOfBirth: payload01.Date_of_Birth as String default "",
+	Phone_Number: payload01.Phone_Number as Number default null,
+	Employee_Status: payload01.Employee_Status default "",
+	Payment_Status: payload01.Payment_Status default "",
+	Source : "SFTP",
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="C:\Users\swaros\Music\SFTP\Outbound" doc:name="Path" doc:id="a265009c-390e-4455-b943-7687f165fa9b" variableName="FileName" />
+		<file:write doc:id="007afd4b-6445-4aee-9c19-83e320ada4c3" config-ref="File_Config" path="C:\Users\swaros\Music\SFTP\Outbound\payment_Processing3.csv" doc:name="Write" />
+	</sub-flow>
+	<sub-flow name="empterminated" doc:id="33e57d33-34cc-4326-a45c-f165026dc93d" >
+		<ee:transform doc:name="emp Terminated Records" doc:id="0082aadb-7803-49ee-a9b2-794395ca4389" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload filter ((upper($.Employee_Status) == "TERMINATED") or (upper($.Employee_Status) == "INACTIVE")) map ( payload01 , indexOfPayload01 ) -> {
+	Emp_Id: payload01.Emp_Id as String default "",
+	First_Name: payload01.First_Name as String default "",
+	Last_Name: payload01.Last_Name as String default "",
+	Joining_Date: payload01.Joining_Date as String default "",
+	Address: payload01.Address as String default "",
+	DateOfBirth: payload01.Date_of_Birth as String default "",
+	Phone_Number: payload01.Phone_Number as Number default null,
+	Employee_Status: payload01.Employee_Status default "",
+	Payment_Status: payload01.Payment_Status default "",
+	Source: vars.From
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="b1f0a708-a921-4a8e-8176-52e0b1073c02" />
+		<ee:transform doc:name="JSON TO CSV" doc:id="9d31d8ca-8e44-47e7-9a7c-55d94ddb861b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="7cca4814-3274-4a3f-a99a-d165e6dc3898" />
+		<choice doc:name="Choice" doc:id="babd0daf-56b5-45d6-b0cc-359e0203f8d5" >
+			<when expression="#[isEmpty(payload)]" >
+				<logger level="INFO" doc:name="Logger" doc:id="3d064a8a-0be8-4d48-82db-3a14517f3bc0" message='#["No Emp terminated Records"]' />
+			</when>
+			<otherwise >
+				<set-variable value="C:\Users\swaros\Music\SFTP\Outbound" doc:name="Set Variable" doc:id="0999c0c5-517f-4a7b-a6b2-6ea06f61e0ef" variableName="path"/>
+				<file:write doc:id="69cb043e-c15b-4801-89b9-d3cd1237868b" config-ref="File_Config" path="#[vars.path ++  now() as String {format : 'yyMMddHHmmss'}  ++ &quot;_&quot; ++ vars.From ++ '_terminated.csv']" doc:name="Write_terminated.csv" />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="Newemp" doc:id="fb3cf051-160b-4834-b06e-f584019f87e5" >
+		<ee:transform doc:name="New emp records" doc:id="f782b092-e06a-4cf4-9b3e-33f40712039d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var from = (now() as Date {format : 'yyyy-MM-dd'} - |P15D|) as String
+var to = (now() as Date {format : 'yyyy-MM-dd'}) as String
+---
+payload filter ((from <= $.Joining_Date ) and ($.Joining_Date  <= to ))map ( payload01 , indexOfPayload01 ) -> {
+	Emp_Id: payload01.Emp_Id,
+	First_Name: payload01.First_Name,
+	Last_Name: payload01.Last_Name,
+	Joining_Date: payload01.Joining_Date,
+	Address: payload01.Address,
+	DateOfBirth: payload01.Date_of_Birth,
+	Phone_Number: payload01.Phone_Number,
+	Employee_Status: payload01.Employee_Status default "",
+	Payment_Status: payload01.Payment_Status__c default "",
+	Source: vars.From
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="fd73934b-1900-4833-887f-84f694fa42f6" />
+		<ee:transform doc:name="JSON TO CSV" doc:id="ca0b3c9a-6027-4187-810d-2006c4e844a9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="d39a71df-bb1a-41bf-bed0-3f92ce978eeb" />
+		<choice doc:name="Choice" doc:id="5ab79c34-f0c5-4f3b-a821-e5a847687c63" >
+			<when expression="#[isEmpty(payload)]" >
+				<logger level="INFO" doc:name="Logger" doc:id="770afe21-4e86-4b42-8a9f-2b73b0b9257d" message='#["No New Emp Records"]' />
+			</when>
+			<otherwise >
+				<set-variable value="C:\Users\swaros\Music\SFTP\Outbound " doc:name="Set Variable" doc:id="2ddc4ae5-6bb4-4e11-9e30-b38281307a8f" variableName="path2" />
+				<file:write doc:id="0aaa06c4-5328-4a2f-bb15-5ebb25b98211" config-ref="File_Config" path="#[vars.path2  ++ now() as String {format : 'yyMMddHHmmss'}  ++ &quot;_&quot; ++ vars.From ++ '_NewJoiner.csv']" doc:name="Write_NewJoiner.csv" />
+			</otherwise>
+		</choice>
+	</sub-flow>
+</mule>

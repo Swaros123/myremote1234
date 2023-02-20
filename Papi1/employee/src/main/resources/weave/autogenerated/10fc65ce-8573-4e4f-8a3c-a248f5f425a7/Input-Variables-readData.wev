@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_10fc65ce_8573_4e4f_8a3c_a248f5f425a7_Input_Variables_readData = Any
+
