@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="DB-suite44.xml" />
+	<munit:test name="DB2-test" doc:id="c4323a9a-fe8f-4f41-b9a5-09589924407c" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Set Payload" doc:id="88e4914c-4c26-4cd8-ada2-f06e78b8dda0" processor="set-payload">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="d49792df-b73a-46e1-956c-bbb5069ab259" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json  --- readUrl('classpath://DB2test\mock_payload.dwl')]" mediaType="application/json " encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="0b8fd16e-e8c0-4909-8b1b-e9684b33bedc" >
+				<munit:payload value="#[output application/java  --- readUrl('classpath://DB2test\set-event_payload1.dwl')]" encoding="UTF-8" mediaType="application/java " />
+				<munit:variables >
+					<munit:variable key="path" value="#[readUrl('classpath://DB2test\set-event_variable_9.dwl')]" encoding="UTF-8" />
+					<munit:variable key="SF" value="#[output application/json --- readUrl('classpath://DB2test\set-event_variable_10.dwl')]" encoding="UTF-8" mediaType="application/json" />
+					<munit:variable key="FileName" value="#[readUrl('classpath://DB2test\set-event_variable_11.dwl')]" encoding="UTF-8" />
+					<munit:variable key="data" value="#[output application/json --- readUrl('classpath://DB2test\set-event_variable_12.dwl')]" encoding="UTF-8" mediaType="application/json" />
+					<munit:variable key="sfData" value="#[output application/json --- readUrl('classpath://DB2test\set-event_variable_13.dwl')]" encoding="UTF-8" mediaType="application/json" />
+					<munit:variable key="sftpData" value="#[output application/json --- readUrl('classpath://DB2test\set-event_variable_14.dwl')]" encoding="UTF-8" mediaType="application/json" />
+					<munit:variable key="DbData" value="#[output application/java --- readUrl('classpath://DB2test\set-event_variable_15.dwl')]" encoding="UTF-8" mediaType="application/java" />
+					<munit:variable key="copy" value="#[readUrl('classpath://DB2test\set-event_variable_16.dwl')]" encoding="UTF-8" />
+				</munit:variables>
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to DB2" doc:id="38d21cb0-9c59-492c-87ac-9bfd3997418a" name="DB2"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="f780fecb-d218-4917-a68a-cfd829209c61" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import DB2test::assert_expression_payload1
+---
+assert_expression_payload1::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="papii24-suite.xml" />
+	<munit:test name="DB-test1" doc:id="b89190ed-7cb2-425a-8922-4b9dfd8d81a9" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Update" doc:id="46c12169-16d1-4c06-a6c8-a494ede011a6" processor="db:update">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="d13094b3-581c-4a3a-94bf-2f19ccd6f0fb" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-call flow="mock-db:update1" />
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Set Payload" doc:id="3dc3f14c-9f2e-4e71-996a-878898a0e2fd" processor="set-payload">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="8a206798-38ca-49c7-9794-5660715a9357" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output text/csv  --- readUrl('classpath://DBtest1\mock_payload5.dwl')]" mediaType="text/csv " encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="298e2001-ac27-446d-bdd4-a6299612c9d4" >
+				<munit:payload value="#[output text/csv  --- readUrl('classpath://DBtest1\set-event_payload.dwl')]" encoding="UTF-8" mediaType="text/csv " />
+				<munit:attributes value="#[readUrl('classpath://DBtest1\set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to DB" doc:id="f1f623aa-933f-49a9-a18f-15dead862679" name="DB"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="10962383-7e06-46ab-999d-0172267f301f" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import DBtest1::assert_expression_payload
+---
+assert_expression_payload::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<flow name="mock-db:update1" doc:id="dad68fba-9f0b-4f1d-8534-934893c0d750" >
+		<try doc:name="Try" doc:id="4eb7b081-068b-4a3d-a7b2-3230790eb69b" >
+			<munit-tools:retrieve doc:name="Retrieve" doc:id="33745395-8f92-499e-8873-a3e775f443a0" key="Mock Update"/>
+			<error-handler >
+				<on-error-continue enableNotifications="false" logException="false" doc:name="On Error Continue" doc:id="4004ffb3-be55-4efa-9c5a-12933dcfeb67" type="ANY">
+					<set-payload value="#[1]" doc:name="Set Payload" doc:id="7f195d69-57dc-4bf4-9768-e0d2a3c169ae" />
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<munit-tools:store doc:name="Store" doc:id="170161e4-5d24-4dfb-b624-01b15bee3c1d" key="Mock Update">
+			<munit-tools:value ><![CDATA[#[payload + 1]]]></munit-tools:value>
+		</munit-tools:store>
+		<choice doc:name="Choice" doc:id="2ee68156-6483-48af-9992-e58da00b28ae" >
+			<when expression="#[payload == 1]">
+				<munit:set-event doc:name="Set Event" doc:id="276e7773-8afc-4e8e-98a1-7d2e6191beb3" >
+					<munit:payload value="#[output application/java  --- readUrl('classpath://DBtest1\mock_payload.dwl')]" encoding="UTF-8" mediaType="application/java " />
+					<munit:variables >
+						<munit:variable key="rootMessage" value="#[readUrl('classpath://DBtest1\mock_variable_.dwl')]" />
+						<munit:variable key="counter" value="#[readUrl('classpath://DBtest1\mock_variable_1.dwl')]" />
+					</munit:variables>
+				</munit:set-event>
+			</when>
+			<when expression="#[payload == 2]">
+				<munit:set-event doc:name="Set Event" doc:id="fc58f81d-6858-47f9-84de-e3ab5fb7bd57" >
+					<munit:payload value="#[output application/java  --- readUrl('classpath://DBtest1\mock_payload1.dwl')]" encoding="UTF-8" mediaType="application/java " />
+					<munit:variables >
+						<munit:variable key="rootMessage" value="#[readUrl('classpath://DBtest1\mock_variable_2.dwl')]" />
+						<munit:variable key="counter" value="#[readUrl('classpath://DBtest1\mock_variable_3.dwl')]" />
+					</munit:variables>
+				</munit:set-event>
+			</when>
+			<when expression="#[payload == 3]">
+				<munit:set-event doc:name="Set Event" doc:id="b04f95bb-c5b8-4b63-a603-071e6501f97c" >
+					<munit:payload value="#[output application/java  --- readUrl('classpath://DBtest1\mock_payload2.dwl')]" encoding="UTF-8" mediaType="application/java " />
+					<munit:variables >
+						<munit:variable key="rootMessage" value="#[readUrl('classpath://DBtest1\mock_variable_4.dwl')]" />
+						<munit:variable key="counter" value="#[readUrl('classpath://DBtest1\mock_variable_5.dwl')]" />
+					</munit:variables>
+				</munit:set-event>
+			</when>
+			<when expression="#[payload == 4]">
+				<munit:set-event doc:name="Set Event" doc:id="80ca847a-1e74-4d11-8d96-a4849da811f0" >
+					<munit:payload value="#[output application/java  --- readUrl('classpath://DBtest1\mock_payload3.dwl')]" encoding="UTF-8" mediaType="application/java " />
+					<munit:variables >
+						<munit:variable key="rootMessage" value="#[readUrl('classpath://DBtest1\mock_variable_6.dwl')]" />
+						<munit:variable key="counter" value="#[readUrl('classpath://DBtest1\mock_variable_7.dwl')]" />
+					</munit:variables>
+				</munit:set-event>
+			</when>
+			<when expression="#[payload == 5]">
+				<munit:set-event doc:name="Set Event" doc:id="c3729745-5d87-48b0-80d6-0fe07e0006ae" >
+					<munit:payload value="#[output application/java  --- readUrl('classpath://DBtest1\mock_payload4.dwl')]" encoding="UTF-8" mediaType="application/java " />
+					<munit:variables >
+						<munit:variable key="rootMessage" value="#[readUrl('classpath://DBtest1\mock_variable_8.dwl')]" />
+						<munit:variable key="counter" value="#[readUrl('classpath://DBtest1\mock_variable_9.dwl')]" />
+					</munit:variables>
+				</munit:set-event>
+			</when>
+			<otherwise >
+				<munit-tools:fail doc:name="Fail" doc:id="6adb5851-e8df-480f-bb38-5e0d59e04785" message="There are no more events to mock"/>
+			</otherwise>
+		</choice>
+	</flow>
+
+
+</mule>

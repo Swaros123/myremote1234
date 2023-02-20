@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="Salesforce11-suite.xml" />
+	<munit:test name="SFData-test" doc:id="2bd21451-c128-405b-bc66-91d1c64b14e1" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Set Payload1" doc:id="4c9114ef-de2e-48e5-9ee2-ca55056f8daa" processor="set-payload">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="8729caeb-c90c-467e-a76f-6931aaa3121f" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json  --- readUrl('classpath://SFDatatest\mock_payload23.dwl')]" mediaType="application/json " encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Set Payload" doc:id="15fece51-c380-48df-88aa-6cf018cc73e5" processor="set-payload">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="86520668-45e2-4c02-a690-f7515b062191" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json  --- readUrl('classpath://SFDatatest\mock_payload24.dwl')]" mediaType="application/json " encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Set Payload" doc:id="19047f27-c45d-4a24-9b43-c4b803062547" processor="set-payload">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="203b704d-c2e4-4baf-9753-56a926eddca8" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json  --- readUrl('classpath://SFDatatest\mock_payload25.dwl')]" mediaType="application/json " encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="d0979dd3-ffe9-4a96-989e-5709b6c1755c" >
+				<munit:payload value="#[output application/csv  --- readUrl('classpath://SFDatatest\set-event_payload8.dwl')]" encoding="UTF-8" mediaType="application/csv " />
+				<munit:attributes value="#[readUrl('classpath://SFDatatest\set-event_attributes8.dwl')]" />
+				<munit:variables >
+					<munit:variable key="path" value="#[readUrl('classpath://SFDatatest\set-event_variable_40.dwl')]" encoding="UTF-8" />
+					<munit:variable key="FileName" value="#[readUrl('classpath://SFDatatest\set-event_variable_41.dwl')]" encoding="UTF-8" />
+					<munit:variable key="data" value="#[output application/json --- readUrl('classpath://SFDatatest\set-event_variable_42.dwl')]" encoding="UTF-8" mediaType="application/json" />
+					<munit:variable key="sftpData" value="#[output application/json --- readUrl('classpath://SFDatatest\set-event_variable_43.dwl')]" encoding="UTF-8" mediaType="application/json" />
+					<munit:variable key="copy" value="#[readUrl('classpath://SFDatatest\set-event_variable_44.dwl')]" encoding="UTF-8" />
+				</munit:variables>
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to SFData" doc:id="eec6bfb2-2d73-479a-84fb-8728c5516f8f" name="SFData"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="14811bea-ef75-455f-b24d-08aff1e0ac5d" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import SFDatatest::assert_expression_payload8
+---
+assert_expression_payload8::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

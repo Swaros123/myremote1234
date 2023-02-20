@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_ef1086a2_327b_4e02_b791_addd16f6a2da_Input_Variables_readData = Any
+

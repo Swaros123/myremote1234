@@ -1,0 +1,13 @@
+{
+  "sampleData": {
+    "a51cb8c2-6fd8-4797-a093-d6ce543166b1": {
+      "payload": "sample_data/list_copybook.flatfile"
+    },
+    "e85dd8e2-1ad1-47c9-a958-3049f0826e57": {
+      "payload": "sample_data/list_copybook_1.flatfile"
+    },
+    "052de8b5-77ec-40e4-842e-809b32aadfd8": {
+      "payload": "sample_data/list_copybook_2.flatfile"
+    }
+  }
+}

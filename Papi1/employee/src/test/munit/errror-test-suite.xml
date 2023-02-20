@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="errror-test-suite.xml" />
+	<munit:test name="errror-test-suite-DB3Test" doc:id="d1ae90b0-8cff-4c36-8914-7047dc15c002" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="2ac3908d-4f77-4689-bfa5-243176c8ae84" processor="salesforce:query">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="552474e7-0840-4a72-babf-c3e08f40f843" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="SALESFORCE:CONNECTIVITY" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="a3ed284b-409e-4379-a790-e905c58d01bc" >
+				<munit:payload value="#[readUrl('classpath://papii2Flowtest1\set-event_payload1.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="93ee0555-cbb2-4b9a-943d-7ca07cd0e968" >
+				<flow-ref doc:name="Flow-ref to DB3" doc:id="1e8016f5-681d-4d7d-aa4c-14b44114862b" name="DB3" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="fcd06e8e-cebf-4dfb-9626-f2a4da89b065" >
+						<logger level="INFO" doc:name="Logger" doc:id="41588ee0-ae0c-4c48-ad77-b97d53c63db2" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="9299d35d-c844-4483-8816-8be190820365" is='#[MunitTools::equalTo("SALESFORCE:CONNECTIVITY")]' expression="#[vars.error]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="errror-test-suite-DB2Test" doc:id="1722970b-295d-456b-b74c-c0556154bcd8" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to DB2" doc:id="1a4dce03-6073-4a0b-96ce-69520e3cd727" name="DB2"/>
+		</munit:execution>
+	</munit:test>
+	<munit:test name="errror-test-suite-DB1Test" doc:id="469922be-34e9-47ca-953a-5338f7997b4a" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to DB1" doc:id="0b0f698a-ca05-4205-a88a-b806cec40a64" name="DB1"/>
+		</munit:execution>
+	</munit:test>
+	<munit:test name="errror-test-suite-DBDataTest" doc:id="80a6a9e3-c27a-4f61-8ffc-f43c789c0c99" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to DBData" doc:id="bc2a6b23-d7cc-4a1e-9965-10184b281d82" name="DBData"/>
+		</munit:execution>
+	</munit:test>
+	<munit:test name="errror-test-suite-mainFlowTest" doc:id="5b3527e7-4b6c-45a3-90b0-5ee3003714f1" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to mainFlow" doc:id="bc56cdc9-c182-48e2-8d7a-f99274313f96" name="mainFlow"/>
+		</munit:execution>
+	</munit:test>
+	<munit:test name="errror-test-suite-SFTPDataTest" doc:id="5282ff89-29ad-4296-922f-b490921433d5" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to SFTPData" doc:id="edbf38a6-27d0-4be6-994d-fb5e2d1c69c9" name="SFTPData"/>
+		</munit:execution>
+	</munit:test>
+	<munit:test name="errror-test-suite-sftp11Test" doc:id="825650e0-f9f0-463c-a385-e6a1dd647d25" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to sftp11" doc:id="059c18a6-510b-4171-811c-23c5a5c6b3e8" name="sftp11"/>
+		</munit:execution>
+	</munit:test>
+	<munit:test name="errror-test-suite-sftp2Test" doc:id="cda7db2e-0582-4a74-b965-71bcafa6ee4f" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to sftp2" doc:id="73da008d-52a4-4ed4-93ae-9396c13bef45" name="sftp2"/>
+		</munit:execution>
+	</munit:test>
+	<munit:test name="errror-test-suite-sftp3Test" doc:id="220727cc-4654-4e9c-ba3d-0687342e9192" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to sftp3" doc:id="cc5feaeb-1076-46be-aff3-3b74ce96bdc4" name="sftp3"/>
+		</munit:execution>
+	</munit:test>
+	<munit:test name="errror-test-suite-empterminatedTest" doc:id="7b6fedf3-1ff2-480a-af2c-b41f8aabc896" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to empterminated" doc:id="0bc175b6-6126-48cd-aa3c-c52cf196b40c" name="empterminated"/>
+		</munit:execution>
+	</munit:test>
+	<munit:test name="errror-test-suite-NewempTest" doc:id="cb1bef43-0f5b-45ec-8685-e9f3eff2226c" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to Newemp" doc:id="26fe84c0-109f-48c2-9447-d800454313be" name="Newemp"/>
+		</munit:execution>
+	</munit:test>
+	<munit:test name="errror-test-suite-SFD1Test" doc:id="262c1dfc-66db-4eb6-81e2-85046e9ff43a" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to SFD1" doc:id="7f30e6d7-4104-452f-a05d-c8241ff37dcd" name="SFD1"/>
+		</munit:execution>
+	</munit:test>
+	<munit:test name="errror-test-suite-SFD2Test" doc:id="123b0c83-1dce-4bf1-b999-2840043e003e" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to SFD2" doc:id="fbf00470-6f68-4d9b-b831-20aeaa203f55" name="SFD2"/>
+		</munit:execution>
+	</munit:test>
+	<munit:test name="errror-test-suite-SFD3Test" doc:id="f0166f66-1f26-4927-b9d3-73a79dd7f03d" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to SFD3" doc:id="5999a9cd-13aa-44d6-bd73-24de68177941" name="SFD3"/>
+		</munit:execution>
+	</munit:test>
+	<munit:test name="errror-test-suite-SFDataTest" doc:id="6094baa8-6eb2-440d-a2c9-9b07121d685f" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to SFData" doc:id="0c69b02f-2ff8-42f0-9590-94283f98833c" name="SFData"/>
+		</munit:execution>
+	</munit:test>
+
+
+</mule>

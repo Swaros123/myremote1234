@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_33e57d33_34cc_4326_a45c_f165026dc93d_Input_Variables_sftpData = Any
+

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="1625a2f3-05fc-4174-b3eb-1a95fe92b611" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="Swaroop@123" database="employeeee"/>
+	</db:config>
+	<sub-flow name="DB3" doc:id="a6318884-e1a7-432b-8a00-3da279d1def9" >
+		<ee:transform doc:name="RestRecords" doc:id="c875dd46-2462-4c65-b634-1eb35642b501">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/csv
+var from = (now() as Date {format : 'yyyy-MM-dd'} - |P15D|)
+var to = (now() as Date {format : 'yyyy-MM-dd'})
+---
+payload filter !((((upper($.Employee_Status) == "TERMINATED") or (upper($.Employee_Status) == "INACTIVE")) or ((from  <= $.Joining_Date  ) and ($.Joining_Date <= to )))) map ( payload01 , indexOfPayload01 ) -> {
+	Id: "",
+	Emp_Id: payload01.Emp_Id as String default "",
+	First_Name: payload01.First_Name as String default "",
+	Last_Name: payload01.Last_Name as String default "",
+	Joining_Date: payload01.Joining_Date as String default "",
+	Address: (payload01.Address splitBy  ",")  joinBy  "" as String default "",
+	DateOfBirth: payload01.Date_of_Birth as String default "",
+	Phone_Number: payload01.Phone_Number as String default "",
+	Employee_Status: payload01.Employee_Status default "",
+	Payment_Status: payload01.Payment_Status default "",
+	Source : "DB"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+		<set-variable value="C:\Users\swaros\Music\SFTP\Data" doc:name="FilePath1" doc:id="e017142b-3927-4266-a6b4-5ce5a9d9768f" variableName="FileName" />
+		<file:write doc:id="9bd8258f-216b-4691-b5fc-186956268111" config-ref="File_Config" path="C:\Users\swaros\Music\SFTP\Outbound\payment_Processing3.csv" doc:name="Write" mode="APPEND"/>
+	</sub-flow>
+	<sub-flow name="DB2" doc:id="10fc65ce-8573-4e4f-8a3c-a248f5f425a7" >
+		<ee:transform doc:name="JSON" doc:id="b40bcad0-d1b0-4073-adfa-7a060c97e772">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	Emp_Id: payload01.Emp_Id as String default "",
+	First_Name: payload01.First_Name as String default "",
+	Last_Name: payload01.LastName as String default "",
+	Joining_Date: payload01.JoiningDate as Date {format : "yyyy-MM-dd"},
+	Address: payload01.Address as String default "",
+	DateOfBirth: payload01.DateofBirth as Date {format : "yyyy-MM-dd"},
+	Phone_Number: payload01.PhoneNumber as Number default null,
+	Employee_Status: payload01.EmployeeStatus default "",
+	Payment_Status: payload01.PaymentStatus default "",
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+		<set-variable value="#[payload]" doc:name="dbData" doc:id="ff951880-c394-41ce-9201-f1955873f198" variableName="dbData" />
+		<set-variable value='#["DB"]' doc:name="From" doc:id="1bf5d988-7098-42e7-909f-e8550deeb519" variableName="From" />
+		<flow-ref doc:name="TerminatedRecords" doc:id="d48146a3-7b41-4c9d-a91a-7ad9fe750708" name="empterminated" />
+		<set-payload value="#[vars.dbData]" doc:name="Set Payload" doc:id="d49792df-b73a-46e1-956c-bbb5069ab259" />
+		<flow-ref doc:name="ForNewemp" doc:id="422326ed-2cc5-4ec5-9506-e48e68b6efe4" name="Newemp" />
+		<remove-variable doc:name="Remove Variable" doc:id="24d6b657-6543-4aea-ab2b-01701c486740" variableName="From" />
+	</sub-flow>
+	<sub-flow name="DB1" doc:id="ef1086a2-327b-4e02-b791-addd16f6a2da" >
+		<ee:transform doc:name="CSV" doc:id="02803716-87a7-4ba9-a3d4-f9aa5d4e37a6">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/csv
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+		<file:write doc:id="496a5b9a-faed-42f3-aac3-b9f44436a3eb" config-ref="File_Config" path="C:\Users\swaros\Music\SFTP\Inbound\db1.csv" doc:name=" Inbound File" />
+		<set-variable value="C:\Users\swaros\Music\SFTP\Inbound \db.csv" doc:name="copyFileName" doc:id="346dbd06-ba5e-4cae-945b-738a589d7e52" variableName="copy" />
+		<file:copy doc:id="cc7cc59b-c5c7-46da-b179-6075b3bc5c06" config-ref="File_Config" sourcePath="C:\Users\swaros\Music\SFTP\Inbound\db1.csv" targetPath="C:\Users\swaros\Music\SFTP\Inoundcpy" createParentDirectories="false" renameTo="#[now() as String {format : 'yyMMddHHmmss'} ++ '_backup_' ++ 'dataBase.csv']" doc:name="Archive Folder" />
+	</sub-flow>
+	<sub-flow name="DBData" doc:id="18029917-1787-4e87-b9a1-23b3d1f77e9b" >
+		<db:select doc:name="Select" doc:id="b4645b77-2d5d-464e-b477-0307f01486a0" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT * FROM employeeee.emp;]]></db:sql>
+		</db:select>
+		<set-variable value="#[payload]" doc:name="DbData" doc:id="9607a65a-1e41-41b4-b9fd-3c7d20790e8a" variableName="DbData" />
+		<flow-ref doc:name="DB1" doc:id="9c0e16b2-f4ed-4c7b-bb9d-67079e3abffe" name="DB1" />
+		<set-payload value="#[vars.DbData]" doc:name="Set Payload" doc:id="ecb092b8-da0f-4dc7-9d7e-b1e0220be003" />
+		<flow-ref doc:name="DB2" doc:id="cc4baaa2-e1e7-4a34-9c3a-1087ec1a2b0c" name="DB2" />
+		<set-payload value="#[vars.DbData]" doc:name="Set Payload1" doc:id="d9f4d4a9-92bc-485c-a3ee-bbf8d7f77c47" />
+		<flow-ref doc:name="DB3" doc:id="bb1fc01b-cd63-4404-9714-ad1a468abd36" name="DB3" />
+		<logger level="INFO" doc:name="Logger" doc:id="a61b4ea4-d908-4d98-b0a5-4837fce22774" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"CorelationId": vars.CorelationId,&#10;	"Payload" : payload&#10;}]' />
+	</sub-flow>
+</mule>

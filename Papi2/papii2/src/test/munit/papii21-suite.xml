@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="papii21-suite.xml" />
+	<munit:test name="Salesforce-test" doc:id="1d90efe7-2225-4ee5-8de7-a71d934c09f0" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Update" doc:id="1227c9ca-27e7-4ad5-8532-00d86d2115e7" processor="salesforce:update">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="76b77ed3-e51a-4bfb-8655-ba960f1d76bf" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/java  --- readUrl('classpath://Salesforcetest\mock_payload1.dwl')]" mediaType="application/java " encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Query" doc:id="4829bba6-c310-4cb6-acca-bbdd17a2ce5a" processor="salesforce:query">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="2e76abf1-1158-41b8-a374-4868334fbbd5" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/java  --- readUrl('classpath://Salesforcetest\mock_payload2.dwl')]" mediaType="application/java " encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Send" doc:id="cc555c81-8ddc-4279-83f1-c69a0f94d4ad" processor="email:send">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="430e7557-73c4-4230-b1eb-3dc1887d77c0" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json  --- readUrl('classpath://Salesforcetest\mock_payload3.dwl')]" mediaType="application/json " encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="3e197aa3-3a6a-4fce-8018-eb0c63801bca" >
+				<munit:payload value="#[output text/csv  --- readUrl('classpath://Salesforcetest\set-event_payload1.dwl')]" encoding="UTF-8" mediaType="text/csv " />
+				<munit:attributes value="#[readUrl('classpath://Salesforcetest\set-event_attributes1.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to Salesforce" doc:id="1d489bfe-6af5-4ab6-bab2-cfdf8ea40833" name="Salesforce"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="cc04741e-8f2f-45aa-bb8a-74eadbbe9e8a" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import Salesforcetest::assert_expression_payload1
+---
+assert_expression_payload1::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="SFTP-test1" doc:id="637ed533-055a-4db2-aa5b-eb1289740866" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Write" doc:id="976d461f-b65a-4ce4-a575-a97ba85de75c" processor="file:write">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="ff0d0f59-2a2b-4cdd-84d2-b3f59eccac1d" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/csv  --- readUrl('classpath://SFTPtest1\mock_payload1.dwl')]" mediaType="application/csv " encoding="UTF-8" />
+					<munit-tools:attributes value="#[readUrl('classpath://SFTPtest1\mock_attributes1.dwl')]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="194672ac-9c9d-4697-a7c8-019147dac675" >
+				<munit:payload value="#[output text/csv  --- readUrl('classpath://SFTPtest1\set-event_payload1.dwl')]" encoding="UTF-8" mediaType="text/csv " />
+				<munit:attributes value="#[readUrl('classpath://SFTPtest1\set-event_attributes1.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to SFTP" doc:id="c7f46e0f-0316-4947-b5cf-c5cb7b822fe1" name="SFTP"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="76e7411b-1fec-4a2a-95d5-9a3d7933c62e" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import SFTPtest1::assert_expression_payload1
+---
+assert_expression_payload1::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

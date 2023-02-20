@@ -1,0 +1,583 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="error-suite.xml" />
+	<munit:test name="DB:CONNECTIVITY" doc:id="bb2d4420-b8c5-4ad8-aad4-8d4e546fcd42" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="fb459100-58c9-4199-a2ce-8d345c7a9f66" processor="db:update">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="d13094b3-581c-4a3a-94bf-2f19ccd6f0fb" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="DB:CONNECTIVITY" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="b2bf5ac9-32db-4d30-9e54-a5e4c1a2b1ce" >
+				<munit:payload value="#[output text/csv  --- readUrl('classpath://DBtest1\set-event_payload.dwl')]" encoding="UTF-8" mediaType="text/csv " />
+				<munit:attributes value="#[readUrl('classpath://DBtest1\set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="8c9e7101-793b-4613-9324-d750a57028cb" >
+				<flow-ref doc:name="Flow-ref to DataBase" doc:id="a6688316-6312-4961-9b7e-6dc135c447dd" name="papii2Flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="582d2198-a830-400a-8261-006b776b1bed" >
+						<logger level="INFO" doc:name="Logger" doc:id="314b66c3-ecfa-4ec1-a97b-ad6a887a9a6d" message="#[payload]" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:name="Assert that" doc:id="47b742a3-6121-4d5d-b94e-27434c4285d2" is='#[MunitTools::equalTo("DB:CONNECTIVITY")]' expression="#[vars.error]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="DB:RETRY_EXHAUSTED" doc:id="3e063eb2-9dec-4573-a410-eddd5d06b78a">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="3b881da0-893e-4945-903d-1e163ea3f00d" processor="db:update" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="d13094b3-581c-4a3a-94bf-2f19ccd6f0fb" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="DB:RETRY_EXHAUSTED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="f6bd9b3a-eb8b-438c-b10d-fc227539ccf2" >
+				<munit:payload value="#[output text/csv  --- readUrl('classpath://DBtest1\set-event_payload.dwl')]" encoding="UTF-8" mediaType="text/csv " />
+				<munit:attributes value="#[readUrl('classpath://DBtest1\set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="1d7249b5-da24-4852-a766-80c2d56ccb10" >
+				<flow-ref doc:name="Flow-ref to DataBase" doc:id="b19ad64f-4f9c-4a57-b8a9-6fc433164417" name="papii2Flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="46e22528-ac2e-414e-bfba-faa1daeb3674" >
+						<logger level="INFO" doc:name="Logger" doc:id="e5ddaa51-fc51-4ca8-82dc-5649f4659de1" message="#[payload]" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="5500927f-3edd-40cb-8061-e3bcf7594cdf" actual="#[vars.error]" expected='#["DB:RETRY_EXHAUSTED"]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="DB:QUERY_EXECUTION" doc:id="f0ad3416-65fd-42f5-a8fa-93d7eea30e03">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="b6965d75-2886-4b29-b428-ee48282f59b3" processor="db:update" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="d13094b3-581c-4a3a-94bf-2f19ccd6f0fb" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="DB:QUERY_EXECUTION" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="0eaeec9e-6972-4238-bb07-87aa9ea8814c" >
+				<munit:payload value="#[output text/csv  --- readUrl('classpath://DBtest1\set-event_payload.dwl')]" encoding="UTF-8" mediaType="text/csv " />
+				<munit:attributes value="#[readUrl('classpath://DBtest1\set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="6c8b5b8e-8156-4049-b1d7-b47e750342a8" >
+				<flow-ref doc:name="Copy_of_Flow-ref to DataBase" doc:id="acefbc29-835a-4ae8-9c70-64757fd67733" name="papii2Flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="ad248d4e-7d96-4678-bb39-c21a7fcbc7a8" >
+						<logger level="INFO" doc:name="Logger" doc:id="69769672-1a45-4592-bba0-aea9803668f9" message="#[payload]" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="abf60133-034d-402d-96e3-bad435a36a08" actual="#[vars.error]" expected='#["DB:QUERY_EXECUTION"]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="DB:BAD_SQL_SYNTAX" doc:id="2cd353ed-666b-4bcf-a791-efba8866f3f2">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="a3df8c49-4d73-4c72-90cb-aedf4830ac07" processor="db:update" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="d13094b3-581c-4a3a-94bf-2f19ccd6f0fb" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="DB:BAD_SQL_SYNTAX" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="5c1aa9f8-7971-48b2-9725-977a0a8bfe6f" >
+				<munit:payload value="#[output text/csv  --- readUrl('classpath://DBtest1\set-event_payload.dwl')]" encoding="UTF-8" mediaType="text/csv " />
+				<munit:attributes value="#[readUrl('classpath://DBtest1\set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="1f21e95f-2c2e-456f-b4e2-1f72d1ec4b80" >
+				<flow-ref doc:name="Flow-ref to DataBase" doc:id="97e3879c-87f8-416d-99e0-922f3e53814a" name="papii2Flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="02935d6d-0765-4fce-b249-99e5c8e2708c" >
+						<logger level="INFO" doc:name="Logger" doc:id="409ce6e9-20ff-4a01-9f2b-87383250ad1a" message="#[payload]" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="9e2f3917-b9fa-4984-88e2-45dbfe71f7c0" actual="#[vars.error]" expected='#["DB:BAD_SQL_SYNTAX"]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="FILE:ACCESS_DENIED" doc:id="ed0ccb4b-576c-4917-8e63-d31352960f51">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="c7d4b4ed-6c8d-4a90-bf28-b09a53aaaebf" processor="file:write" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="ff0d0f59-2a2b-4cdd-84d2-b3f59eccac1d" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="FILE:ACCESS_DENIED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="d68120a6-c29d-4849-b586-59d52af49403" >
+				<munit:payload value="#[output text/csv  --- readUrl('classpath://SFTPtest1\set-event_payload.dwl')]" encoding="UTF-8" mediaType="text/csv " />
+				<munit:attributes value="#[readUrl('classpath://SFTPtest1\set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="8bc0134f-da1e-414d-8684-264fa0bc784c" >
+				<flow-ref doc:name="Flow-ref" doc:id="305976df-64a2-4b12-a28f-d99289356db1" name="papii2Flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="Error Continue" doc:id="54b2a321-aa91-48c4-a950-a3e5ba4d98f3" >
+						<logger level="INFO" doc:name="Logger" doc:id="e3345d09-1cae-4d2d-8441-6b15cea63c83" message="#[payload]" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="fc1b87b3-0440-4e8d-8fbe-e916d088f571" actual="#[vars.error]" expected='#["FILE:ACCESS_DENIED"]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="FILE:CONNECTIVITY" doc:id="69c03a4f-4a6c-4cbb-94d9-7db475809e3d">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="eba0db22-520b-4f3c-88b9-0dc55865dfd6" processor="file:write" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="ff0d0f59-2a2b-4cdd-84d2-b3f59eccac1d" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="FILE:CONNECTIVITY" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="198bfd7a-aac4-4608-95bb-fd5849c04616" >
+				<munit:payload value="#[output text/csv  --- readUrl('classpath://SFTPtest1\set-event_payload.dwl')]" encoding="UTF-8" mediaType="text/csv " />
+				<munit:attributes value="#[readUrl('classpath://SFTPtest1\set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="66fc0a2b-e826-45e4-bb28-c87cdd93ceb3" >
+				<flow-ref doc:name="Flow-ref" doc:id="bd22827f-f36a-4d9a-b05f-72a43bf89ab5" name="papii2Flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="Error Continue" doc:id="81d11ee4-de42-4232-9aa5-247a4d55c9d9" >
+						<logger level="INFO" doc:name="Logger" doc:id="853e60eb-f274-45e4-9f56-08e96b875538" message="#[payload]" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="77411e84-31ee-401b-ba95-a8294d6285b0" actual="#[vars.error]" expected='#["FILE:CONNECTIVITY"]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="FILE:FILE_ALREADY_EXISTS" doc:id="8a7dc0f8-4218-4afd-abcc-0f8631e4af64">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="1b20ae58-e6ae-4c1c-9acd-5451f01c1024" processor="file:write" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="ff0d0f59-2a2b-4cdd-84d2-b3f59eccac1d" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="FILE:FILE_ALREADY_EXISTS" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="597fae7b-49cb-4e50-aaae-d19e090f5331" >
+				<munit:payload value="#[output text/csv  --- readUrl('classpath://SFTPtest1\set-event_payload.dwl')]" encoding="UTF-8" mediaType="text/csv " />
+				<munit:attributes value="#[readUrl('classpath://SFTPtest1\set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="eb2760ef-3360-4bc1-9f4d-1a612b13a8ec" >
+				<flow-ref doc:name="Flow-ref" doc:id="70e2d968-2664-490e-b9b2-764287ce3d35" name="papii2Flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="Error Continue" doc:id="64e71ff2-b540-4536-822b-b81fa9049d57" >
+						<logger level="INFO" doc:name="Logger" doc:id="adc57145-7c2e-486a-9c96-ec53d6b9227a" message="#[payload]" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="918d741f-8a8d-4abf-b6c1-4d4c5fbfe19f" actual="#[vars.error]" expected='#["FILE:FILE_ALREADY_EXISTS"]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="FILE:FILE_LOCK" doc:id="54431159-c42e-4739-b5d5-b124976684ed">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="02dce512-96e3-4131-a0cf-84117b1358ae" processor="file:write" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="ff0d0f59-2a2b-4cdd-84d2-b3f59eccac1d" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="FILE:FILE_LOCK" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="076bc1b9-d2c4-4cc6-b74d-83d24014e4a0" >
+				<munit:payload value="#[output text/csv  --- readUrl('classpath://SFTPtest1\set-event_payload.dwl')]" encoding="UTF-8" mediaType="text/csv " />
+				<munit:attributes value="#[readUrl('classpath://SFTPtest1\set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="87e37cf1-7dbf-4e08-955a-e5db4ccfc58f" >
+				<flow-ref doc:name="Flow-ref" doc:id="324d6d59-462e-492e-b3a9-1c6cc58abafc" name="papii2Flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="Error Continue" doc:id="637242e2-0336-4819-80c1-1ea0a1f20cca" >
+						<logger level="INFO" doc:name="Logger" doc:id="1eab8a5f-9f9a-41e3-896d-a885b4f31c0e" message="#[payload]" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="05ad00fa-fc4e-4846-9349-674bcbe5f7e5" actual="#[vars.error]" expected='#["FILE:FILE_LOCK"]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="FILE:ILLEGAL_CONTENT" doc:id="e2cc4076-3c9a-4984-adcb-d0a0079bce97">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="c8d169b0-c704-4ba9-bcd2-6a82ced4155d" processor="file:write" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="ff0d0f59-2a2b-4cdd-84d2-b3f59eccac1d" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="FILE:ILLEGAL_CONTENT" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="a4a6f960-a442-4440-abac-e40c6ddf4196" >
+				<munit:payload value="#[output text/csv  --- readUrl('classpath://SFTPtest1\set-event_payload.dwl')]" encoding="UTF-8" mediaType="text/csv " />
+				<munit:attributes value="#[readUrl('classpath://SFTPtest1\set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="583c1001-d868-4dcf-a0ab-c981d4bcd293" >
+				<flow-ref doc:name="Copy_of_Flow-ref" doc:id="41e49423-5460-4986-82e9-e8c640c16c98" name="papii2Flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="Error Continue" doc:id="19ddd729-a2f9-4c07-8beb-899542c0b791" >
+						<logger level="INFO" doc:name="Logger" doc:id="5aff48e9-ab89-4444-9b86-0f16b56b183c" message="#[payload]" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="3961570e-0704-4dfd-a790-8cc5b4aa74cf" actual="#[vars.error]" expected='#["FILE:ILLEGAL_CONTENT"]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="FILE:ILLEGAL_PATH" doc:id="e3255fe4-5052-4481-9965-a696d124eda9">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="5ae39cad-f6ca-4dc7-b4a4-203882997f42" processor="file:write" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="ff0d0f59-2a2b-4cdd-84d2-b3f59eccac1d" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="FILE:ILLEGAL_PATH" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="40c57e65-ae4e-4573-a6c4-eb4f5dd020da" >
+				<munit:payload value="#[output text/csv  --- readUrl('classpath://SFTPtest1\set-event_payload.dwl')]" encoding="UTF-8" mediaType="text/csv " />
+				<munit:attributes value="#[readUrl('classpath://SFTPtest1\set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="37460952-3e7f-46a8-9d6b-3c1e35d0484d" >
+				<flow-ref doc:name="Copy_of_Flow-ref" doc:id="87d277e5-7474-497b-91fa-ef5acf205dd8" name="papii2Flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="Error Continue" doc:id="22f84b70-1df3-4186-944c-36970070e23c" >
+						<logger level="INFO" doc:name="Logger" doc:id="7b0377ea-0d02-4291-881d-526622cd9e5c" message="#[payload]" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="9c595cc4-d7e1-498b-bd8e-eecefdb62cb9" actual="#[vars.error]" expected='#["FILE:ILLEGAL_PATH"]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="SALESFORCE:INVALID_INPUT" doc:id="cbcb3f05-607a-467c-91fd-231ffd7c5029">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="0269d382-98ac-484d-af7f-6492e20776b9" processor="salesforce:update" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="76b77ed3-e51a-4bfb-8655-ba960f1d76bf" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="SALESFORCE:INVALID_INPUT" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="9937a085-d1d5-49e5-a55a-54479ead83d6" >
+				<munit:payload value="#[readUrl('classpath://papii2Flowtest1\set-event_payload1.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="489e6820-fcad-4420-806c-735b88524bca" >
+				<flow-ref doc:name="Flow-ref" doc:id="1a690c73-39e4-4fc7-a902-2482abf7048b" name="papii2Flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="Error Continue" doc:id="861d6252-0107-40a9-ba41-12b5b15fa171" >
+						<logger level="INFO" doc:name="Copy_of_Logger" doc:id="c52fd810-1d98-4cf6-8ea5-d33c6a395e7b" message="#[payload]" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="4117d124-ce3c-4d05-be13-7d6a6e25c0be" actual="#[vars.error]" expected='#["SALESFORCE:INVALID_INPUT"]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="SALESFORCE:TIMEOUT" doc:id="832abd2e-3293-4d28-b203-3f7b5450e8e8">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="1876717e-5848-4d60-ba1f-51b36e80b5d3" processor="salesforce:update" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="76b77ed3-e51a-4bfb-8655-ba960f1d76bf" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="SALESFORCE:TIMEOUT" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="9e574bc8-852e-4ec4-b923-5923393ecbca" >
+				<munit:payload value="#[readUrl('classpath://papii2Flowtest1\set-event_payload1.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="055ee854-eac4-4a10-a992-631a5b873dc5" >
+				<flow-ref doc:name="Flow-ref" doc:id="12f02d30-c4b8-4805-bf46-39f1a83766a4" name="papii2Flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="Error Continue" doc:id="91f07d76-a506-495a-806d-5c5f2c6553ff" >
+						<logger level="INFO" doc:name="Logger" doc:id="485cb4f3-adc2-4659-b928-39f807da4553" message="#[payload]" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="d8174337-af25-43a0-81f8-c702d62cbc9a" actual="#[vars.error]" expected='#["SALESFORCE:TIMEOUT"]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="SALESFORCE:MUTUAL_AUTHENTICATION_FAILED" doc:id="d2f36471-ac98-4d3b-b90a-74215307283a">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="8b53cdf0-58c7-467c-802b-912f6b9a11eb" processor="salesforce:update" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="76b77ed3-e51a-4bfb-8655-ba960f1d76bf" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="SALESFORCE:MUTUAL_AUTHENTICATION_FAILED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="bb60bad8-2676-4023-946f-4d63f5d4f8a1" >
+				<munit:payload value="#[readUrl('classpath://papii2Flowtest1\set-event_payload1.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="c0d10662-5fdf-4c35-82e8-b4c54e1de709" >
+				<flow-ref doc:name="Flow-ref" doc:id="577d8603-3630-459d-b4ab-801951e2e631" name="papii2Flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="Error Continue" doc:id="a8ea0335-b0a0-468e-931a-9e3b174b42db" >
+						<logger level="INFO" doc:name="Logger" doc:id="4d28a4db-f914-4923-9f88-a02ca4a00096" message="#[payload]" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="c80aef6d-0575-4c07-a605-41ed7189ab79" actual="#[vars.error]" expected='#["SALESFORCE:MUTUAL_AUTHENTICATION_FAILED"]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="SALESFORCE:LIMIT_EXCEEDED" doc:id="b06fd97a-7e00-4eb5-b803-5f80ac7bf429">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="c9514e50-416e-4177-8820-9c32d0bcc0fd" processor="salesforce:update" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="76b77ed3-e51a-4bfb-8655-ba960f1d76bf" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="SALESFORCE:LIMIT_EXCEEDED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="66371096-d527-4768-a2b6-59b03bf0fdec" >
+				<munit:payload value="#[readUrl('classpath://papii2Flowtest1\set-event_payload1.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="e1609681-7ccc-4d72-953a-4e1c704d0d0b" >
+				<flow-ref doc:name="Flow-ref" doc:id="29b420e3-c9e4-404c-960f-6aa73ca39489" name="papii2Flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="Error Continue" doc:id="76f62812-463f-454e-8065-c4ca58d11f7e" >
+						<logger level="INFO" doc:name="Logger" doc:id="44a63a3a-b560-4316-8e9f-9acb3985b551" message="#[payload]" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="15e62542-660d-49a4-ad57-4c96e7a3198e" actual="#[vars.error]" expected='#["SALESFORCE:LIMIT_EXCEEDED"]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="SALESFORCE:NOT_FOUND" doc:id="bb7f43bb-2f66-4fea-96c0-b2ba55dec4e7">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="cfa2956d-b278-4b17-9e20-140d0f5eccaa" processor="salesforce:update" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="76b77ed3-e51a-4bfb-8655-ba960f1d76bf" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="SALESFORCE:NOT_FOUND" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="2a6ac01b-9c5f-4fe0-becd-5c2ea4398c01" >
+				<munit:payload value="#[readUrl('classpath://papii2Flowtest1\set-event_payload1.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="cc0758c4-7fbf-4e40-b4a3-a5b7cab98337" >
+				<flow-ref doc:name="Flow-ref" doc:id="3d8a6cd7-e832-4927-8f32-f66f54438277" name="papii2Flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="Copy_of_Error Continue" doc:id="e8b786a9-af11-48c2-97d7-445a4f674f03" >
+						<logger level="INFO" doc:name="Logger" doc:id="bd4aa6c2-49f0-4fca-a898-59192f0fa4c1" message="#[payload]" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="bbb39e32-1d11-4026-a062-484f2043280b" actual="#[vars.error]" expected='#["SALESFORCE:NOT_FOUND"]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="STREAM_MAXIMUM_SIZE_EXCEEDED" doc:id="2c5f72a5-cf3a-4d78-88ce-92256830252a">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="8a499922-928b-49c7-89d3-c0f27c8a58c8" processor="salesforce:update" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="76b77ed3-e51a-4bfb-8655-ba960f1d76bf" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="SALESFORCE:NOT_FOUND" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="47705e5e-94eb-4d3e-b67e-0154e7f2b38d" >
+				<munit:payload value="#[readUrl('classpath://papii2Flowtest1\set-event_payload1.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="88097c01-0a7f-4db0-9eb1-0f1e34b15927" >
+				<flow-ref doc:name="Flow-ref" doc:id="d61913fa-d5cd-4f14-bc79-d271c8804ff1" name="papii2Flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="Error Continue" doc:id="7d5f2d61-7f5a-4090-a92a-4da0a1036782" >
+						<logger level="INFO" doc:name="Copy_of_Logger" doc:id="fd82700c-d910-4f9e-b9d4-7a76369b44b9" message="#[payload]" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="c1df31ee-9423-4e43-a292-30acb086856f" actual="#[vars.error]" expected='#["STREAM_MAXIMUM_SIZE_EXCEEDED"]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="EXPRESSION" doc:id="2c09f39c-007e-4b7b-91c5-cf962ed0f41a">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="310a9b0e-bfd0-47f4-9e0e-66578d0e25c1" processor="salesforce:update" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="76b77ed3-e51a-4bfb-8655-ba960f1d76bf" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="EXPRESSION" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="91978436-d4e4-4717-b24f-a6a349e0dae3" >
+				<munit:payload value="#[readUrl('classpath://papii2Flowtest1\set-event_payload1.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="e376bb1b-fb78-4681-bb52-37bd8660fac7" >
+				<flow-ref doc:name="Flow-ref" doc:id="5ffe4b15-067b-45db-b97f-1804afc715dc" name="papii2Flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="Error Continue" doc:id="2092a00a-f694-406c-819c-01f6077b73dd" >
+						<logger level="INFO" doc:name="Logger" doc:id="1a71a013-6e52-4686-9565-068fe6fd0f07" message="#[payload]" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="1c5a6a5d-299b-4cda-aa47-2218be722faa" actual="#[vars.error]" expected='#["EXPRESSION"]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="SALESFORCE:RETRY_EXHAUSTED" doc:id="e6853f40-a16f-4bf4-bc3e-21d3c3fd08fa">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="e50c077e-37a4-4748-9ec4-9d7fbabdfd29" processor="salesforce:update" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="76b77ed3-e51a-4bfb-8655-ba960f1d76bf" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="SALESFORCE:NOT_FOUND" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="ca1c5e6a-cdd7-477c-9a2c-93d8306f355c" >
+				<munit:payload value="#[readUrl('classpath://papii2Flowtest1\set-event_payload1.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="98b7faf8-c274-4101-9547-5ac3c45de9af" >
+				<flow-ref doc:name="Copy_of_Flow-ref" doc:id="2c831170-5868-4910-8d14-ee78722e9fdd" name="papii2Flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="Error Continue" doc:id="4af6907a-14d9-4c82-8ac3-810bdfe31d98" >
+						<logger level="INFO" doc:name="Copy_of_Logger" doc:id="cafcc782-8549-45d0-b917-0ffa33fd63fe" message="#[payload]" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="3714a90f-40e7-4045-b5f8-35d699030782" actual="#[vars.error]" expected='#["SALESFORCE:RETRY_EXHAUSTED"]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="SALESFORCE:INVALID_RESPONSE" doc:id="546d3e9d-2d8c-465f-83c0-0291562c3bf9">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="2c8f9764-abf8-4692-aa16-93ce70aad1ec" processor="salesforce:update" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="76b77ed3-e51a-4bfb-8655-ba960f1d76bf" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="SALESFORCE:INVALID_RESPONSE" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="5d806194-a58e-4a4a-914e-a0405a3f4a4f" >
+				<munit:payload value="#[readUrl('classpath://papii2Flowtest1\set-event_payload1.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="28340cb5-35ee-4a24-9b23-86ebe5d20741" >
+				<flow-ref doc:name="Flow-ref" doc:id="f2fe3592-8c3e-4074-9104-cd057c6f87db" name="papii2Flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="Error Continue" doc:id="06f038a4-7c9f-40dd-884a-da675782b708" >
+						<logger level="INFO" doc:name="Copy_of_Logger" doc:id="986f923a-d27a-46a4-a1d1-6a52f1051a06" message="#[payload]" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="82bb9761-fdbf-4b9c-84e1-dc7ac2661306" actual="#[vars.error]" expected='#["SALESFORCE:INVALID_RESPONSE"]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="SALESFORCE:CONNECTIVITY" doc:id="f63aa498-3a3f-4923-8684-a7ddf66d1672">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="c2e533a7-32a2-4b84-be2d-04f1bab7f80f" processor="salesforce:update" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="76b77ed3-e51a-4bfb-8655-ba960f1d76bf" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="SALESFORCE:CONNECTIVITY" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="a878afd9-f4a2-4bc2-a320-fb0287a0b707" >
+				<munit:payload value="#[readUrl('classpath://papii2Flowtest1\set-event_payload1.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="7e01bc38-f066-4f28-a108-a3d316165021" >
+				<flow-ref doc:name="Flow-ref" doc:id="dbcb914c-bd04-4d0b-a0f0-458344ab7bac" name="papii2Flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="Error Continue" doc:id="0a88704a-c1cb-46b1-b727-826f1d8755ee" >
+						<logger level="INFO" doc:name="Logger" doc:id="8f527ac6-89c9-4387-a4a4-78bfcc30035a" message="#[payload]" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="6542d87c-39d6-48dc-a7bd-5da0e75defb1" actual="#[vars.error]" expected='#["SALESFORCE:CONNECTIVITY"]' />
+		</munit:validation>
+	</munit:test>
+
+
+</mule>
